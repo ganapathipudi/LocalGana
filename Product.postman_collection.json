@@ -1,0 +1,133 @@
+{
+	"id": "725751c6-8440-7d7e-f6b7-6ac27229d147",
+	"name": "Product",
+	"description": "",
+	"order": [
+		"6ab0b507-ca0c-39b0-9cec-d9cdaef52cdb",
+		"08629314-ff9a-a889-4ea5-ad068c743f82",
+		"f8e4fd95-7172-bd42-d506-c756196f7fca",
+		"0169ff03-76df-3cf1-2445-8868e240497d"
+	],
+	"folders": [],
+	"folders_order": [],
+	"timestamp": 1527446168638,
+	"owner": 0,
+	"public": false,
+	"requests": [
+		{
+			"id": "0169ff03-76df-3cf1-2445-8868e240497d",
+			"headers": "",
+			"headerData": [],
+			"url": "http://localhost:8080/product/delete/3",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "DELETE",
+			"collectionId": "725751c6-8440-7d7e-f6b7-6ac27229d147",
+			"data": null,
+			"dataMode": "params",
+			"name": "delete",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1527446510035,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {}
+		},
+		{
+			"id": "08629314-ff9a-a889-4ea5-ad068c743f82",
+			"headers": "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6IjEyMyIsInJvbGUiOiJBRE1JTiJ9.1VoWKZb_cqXV-WleJctnsO_7vsViKjKtYhlJDGmQHIpvV6qlP02DY_9gC-nWl-nYowZwMgO4sMtpyO5AAVMdTg\n",
+			"headerData": [
+				{
+					"key": "Authorization",
+					"value": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJJZCI6IjEyMyIsInJvbGUiOiJBRE1JTiJ9.1VoWKZb_cqXV-WleJctnsO_7vsViKjKtYhlJDGmQHIpvV6qlP02DY_9gC-nWl-nYowZwMgO4sMtpyO5AAVMdTg",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://localhost:8080/product/list",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "GET",
+			"collectionId": "725751c6-8440-7d7e-f6b7-6ac27229d147",
+			"data": null,
+			"dataMode": "params",
+			"name": "List",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1527446489703,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {}
+		},
+		{
+			"id": "6ab0b507-ca0c-39b0-9cec-d9cdaef52cdb",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://localhost:8080/product/add",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "POST",
+			"collectionId": "725751c6-8440-7d7e-f6b7-6ac27229d147",
+			"data": [],
+			"dataMode": "raw",
+			"name": "Add",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1527446478608,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"rawModeData": "{\r\n  \"description\": \"simla apple\",\r\n  \"id\": 0,\r\n  \"imageUrl\": \"apple.jpg\",\r\n  \"price\": 0,\r\n  \"productId\": \"Apple01\",\r\n  \"version\": 0\r\n}"
+		},
+		{
+			"id": "f8e4fd95-7172-bd42-d506-c756196f7fca",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://localhost:8080/product/update/3",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "PUT",
+			"collectionId": "725751c6-8440-7d7e-f6b7-6ac27229d147",
+			"data": [],
+			"dataMode": "raw",
+			"name": "update",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1527446499338,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"rawModeData": "{\r\n  \"description\": \"simla apple\",\r\n  \"imageUrl\": \"apple.jpg\",\r\n  \"price\": 0,\r\n  \"productId\": \"Apple01 Updated\",\r\n  \"version\": 0\r\n}"
+		}
+	]
+}
