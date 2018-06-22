@@ -1,0 +1,474 @@
+@Controller
+public class TempController1
+{
+  private static Logger logger = Logger.getLogger(TempController1.class);
+
+ @RequestMapping(value = "/dummycart/accessory/{sku}/{promo}", method = RequestMethod.GET)
+ public
+  @ResponseBody
+  String fetchBoxDetails(@RequestBody DetailsInput input)
+  {
+    String details = "";
+    if (StoreSupport.isValidRequest(input.getUsername(), input.getPassword()))
+    {}
+  }
+  }
+	
+	
+	package com.tivo.store.support;
+
+import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Properties;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+
+import sun.misc.BASE64Decoder;
+
+import com.tivo.commerce.RepositoryException;
+import com.tivo.commerce.dao.CommerceDaoFactory;
+import com.tivo.commerce.dao.criteria.CustomerUidMapCriteria;
+import com.tivo.commerce.dao.support.DbPropertyConstants;
+import com.tivo.commerce.dao.support.RepositoryObjectFetcher;
+import com.tivo.commerce.domain.CustomerCart;
+import com.tivo.commerce.domain.CustomerUidMap;
+import com.tivo.commerce.domain.PersistentCart;
+import com.tivo.commerce.domain.ZipcodeAddress;
+import com.tivo.commerce.support.PropertiesSupport;
+import com.tivo.customer.CustomerException;
+import com.tivo.customer.domain.Address;
+import com.tivo.customer.service.CustomerService;
+import com.tivo.it.common.common.bo.ZipCodeAddress;
+import com.tivo.store.StoreType;
+import com.tivo.store.dto.RequestDto;
+
+public  class StoreSupport
+{
+  private static Logger logger = Logger.getLogger(StoreSupport.class);
+  private static final String STORE_PROPERTIES_SYSTEM_NAME = "storeconfig";
+  private static Properties storeProperties;
+  private static Properties storeDeploymentProperties;
+  private static StoreType storeType;
+  private static String storeVersion;
+  private static String storeName;
+  public static final String STORE_PROPERTIES = "/etc/store.properties";
+  public static final String STORE_DEPLOYMENT_PROPERTIES = "META-INF/maven/tivo.it/scrat/pom.properties";
+  private static final String SCRAT_LOG_64KEY = "scrat.log.pwd64";
+  private static final String SCRAT_USER = "scrat.log.user";
+  public static final String SEPARATOR_COMMA = ",";
+  public static final String MM_DD_YYYY = "MM/dd/yyyy";
+
+ 
+  public static String fetchStoreVersionInfo() throws IOException
+  {
+    int year = Calendar.getInstance().get(Calendar.YEAR);
+    StringBuilder sb = new StringBuilder();
+    if (storeDeploymentProperties != null)
+    {
+      sb.append("TiVo Store version '").append(getStoreDeploymentVersion()).append("'\n");
+    }
+    else
+    {
+      sb.append("TiVo Store version '").append(getStoreVersion()).append("'\n");
+    }
+    sb.append("Store Type: '").append(getStoreType()).append("'\n");
+    sb.append("Store Name: '").append(getStoreName()).append("'\n");
+    sb.append(new Date()).append("'\n");
+    sb.append("Copyright " + year + " TiVo Inc.");
+    return sb.toString();
+  }
+
+  public static void initStoreDeploymentProperties(Properties properties)
+  {
+    storeDeploymentProperties = properties;
+  }
+
+  public static String getStoreDeploymentVersion()
+  {
+    return (String) storeDeploymentProperties.get("version");
+  }
+
+  public static StoreType getStoreType() throws IOException
+  {
+    if (storeType == null)
+    {
+      loadStoreProperties();
+      String storeTypeStr = (String) storeProperties.get("store.type");
+      if (storeTypeStr == null)
+      {
+        storeTypeStr = "CUSTOMER";
+      }
+      storeType = StoreType.valueOf(storeTypeStr.trim().toUpperCase());
+    }
+
+    return storeType;
+  }
+
+  public static String getStoreVersion() throws IOException
+  {
+    if (storeVersion == null)
+    {
+      loadStoreProperties();
+      storeVersion = (String) storeProperties.get("store.version");
+      if (storeVersion == null)
+      {
+        storeVersion = "UNKNOWN";
+      }
+    }
+    return storeVersion;
+  }
+
+  public static String getStoreName() throws IOException
+  {
+    if (storeName == null)
+    {
+      loadStoreProperties();
+      storeName = (String) storeProperties.get("store.name");
+      if (storeName == null)
+      {
+        storeName = getIpAddress();
+      }
+    }
+    return storeName;
+  }
+
+  public static String getStoreProperty(String prop) throws IOException
+  {
+    if (StringUtils.isNotBlank(prop))
+    {
+      loadStoreProperties();
+      return (String) storeProperties.get(prop);
+    }
+    return null;
+  }
+
+  public static String getStoreProperty(String prop, String defaultValue)
+  {
+    try
+    {
+      if (StringUtils.isNotBlank(prop))
+      {
+        loadStoreProperties();
+        String value = (String) storeProperties.get(prop);
+        if (StringUtils.isNotBlank(value))
+        {
+          return value;
+        }
+      }
+    }
+    catch (IOException e)
+    {
+      logger.error("Error loading file");
+    }
+    return defaultValue;
+  }
+
+  public static List<String> loadListProperties(String property)
+  {
+    List<String> arrayList = new ArrayList<String>();
+    try
+    {
+      String value = getStoreProperty(property);
+      if (StringUtils.isNotBlank(value))
+      {
+        arrayList = Arrays.asList(value.split(StoreSupport.SEPARATOR_COMMA));
+      }
+    }
+    catch (IOException e)
+    {
+      logger.error("Not able to read the property");
+    }
+    return arrayList;
+  }
+
+  public static String getIpAddress() throws UnknownHostException
+  {
+    return Inet4Address.getLocalHost().getHostAddress();
+  }
+
+  private static void loadStoreProperties() throws IOException
+  {
+    if (storeProperties == null)
+    {
+      synchronized (STORE_PROPERTIES.intern())
+      {
+        if (storeProperties == null)
+        {
+          storeProperties = PropertiesSupport.loadProperties(STORE_PROPERTIES_SYSTEM_NAME, STORE_PROPERTIES);
+        }
+      }
+    }
+  }
+
+  public static boolean isValidRequest(RequestDto requestDto)
+  {
+    boolean valid = false;
+    if (requestDto != null)
+    {
+      valid = isValidRequest(requestDto.getUsername(), requestDto.getPassword());
+    }
+    return valid;
+  }
+
+  private static String decode(String str)
+  {
+    if (StringUtils.isNotBlank(str))
+    {
+      BASE64Decoder decoder = new BASE64Decoder();
+      try
+      {
+        str = new String(decoder.decodeBuffer(str));
+      }
+      catch (IOException e)
+      {
+        logger.error("Error while decodmg passphrase", e);
+      }
+    }
+    return str;
+  }
+
+  public static boolean isValidRequest(String username, String password)
+  {
+    if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password))
+    {
+      try
+      {
+        String email = getStoreProperty(SCRAT_USER);
+        String passphrase = decode(getStoreProperty(SCRAT_LOG_64KEY));
+        if (StringUtils.equalsIgnoreCase(email, username) && StringUtils.equalsIgnoreCase(passphrase, password))
+        {
+          return true;
+        }
+      }
+      catch (IOException e)
+      {
+        logger.error("Error while checking the user encryped values", e);
+      }
+    }
+    return false;
+  }
+
+  public static ZipcodeAddress addressToZipcodeAddress(Address address)
+  {
+    ZipcodeAddress zipcodeAddress = new ZipcodeAddress();
+    zipcodeAddress.setAddr1(address.getAddr1());
+    zipcodeAddress.setAddr2(address.getAddr2());
+    zipcodeAddress.setCity(address.getCity());
+    zipcodeAddress.setState(address.getState());
+    zipcodeAddress.setZip(address.getZip());
+    zipcodeAddress.setCountry(address.getCountry());
+    return zipcodeAddress;
+  }
+
+  public static Address zipcodeAddressToAddress(ZipcodeAddress zipcodeAddress)
+  {
+    Address address = new Address();
+    address.setAddr1(zipcodeAddress.getAddr1());
+    address.setAddr2(zipcodeAddress.getAddr2());
+    address.setCity(zipcodeAddress.getCity());
+    address.setState(zipcodeAddress.getState());
+    address.setZip(zipcodeAddress.getZip());
+    address.setCountry(zipcodeAddress.getCountry());
+    return address;
+  }
+
+  public static String fetchCustomerUid(String email) throws RepositoryException
+  {
+    String uid = null;
+    CustomerUidMap customerUidMap = RepositoryObjectFetcher.fetchCustomerUidMap(email.toUpperCase());
+    if (customerUidMap != null)
+    {
+      uid = customerUidMap.getUid();
+    }
+    return uid;
+  }
+
+  public static String fetchCustomerEmail(String uid) throws RepositoryException
+  {
+    String email = null;
+    CustomerUidMapCriteria criteria = new CustomerUidMapCriteria();
+    criteria.setUid(uid);
+    CustomerUidMap map = CommerceDaoFactory.getInstance().getCustomerUidMapDao().selectOne(criteria);
+    if (map != null)
+    {
+      email = map.getEmail();
+    }
+    return email;
+  }
+
+  public static PersistentCart fetchCustomerCart(String uid)
+  {
+    PersistentCart persistentCart = null;
+    if (uid != null)
+    {
+      try
+      {
+        CustomerCart cCart = CommerceDaoFactory.getInstance().getCustomerCartDao().selectOne(uid);
+        if (cCart != null)
+        {
+          persistentCart = cCart.getCart();
+        }
+      }
+      catch (RepositoryException e)
+      {
+        // log and move on
+        logger.error("Unable to fetch customer cart for uid " + uid, e);
+      }
+    }
+    return persistentCart;
+  }
+
+  public static void saveCustomerUidToRepo(String customerUid, String customerEmail) throws RepositoryException
+  {
+    CustomerUidMap customerUidMap = new CustomerUidMap();
+    Date now = new Date();
+    customerUidMap.setCreateDate(now);
+    customerUidMap.setEmail(customerEmail.toUpperCase());
+    customerUidMap.setRegistered(true);
+    customerUidMap.setUid(customerUid);
+    customerUidMap.setUpdateDate(now);
+    CommerceDaoFactory.getInstance().getCustomerUidMapDao().create(customerUidMap);
+  }
+
+  public static String getAdminProperty(String key)
+  {
+    try
+    {
+      return RepositoryObjectFetcher.fetchAdminPropertyValue(key);
+    }
+    catch (RepositoryException e)
+    {
+      logger.error("Not able to get Admin property " + key);
+    }
+    return "";
+  }
+
+  // this parseTime in 24 hr format
+  public static Date parseTime(String date)
+  {
+
+    SimpleDateFormat inputParser = new SimpleDateFormat("HH:mm", Locale.US);
+    try
+    {
+      return inputParser.parse(date);
+    }
+    catch (java.text.ParseException e)
+    {
+      return new Date(0);
+    }
+  }
+
+  public static Date getCurrentTime()
+  {
+    Calendar now = Calendar.getInstance();
+    int currentHour = now.get(Calendar.HOUR_OF_DAY); // Get hour in 24 hour
+    // format
+    int currentMinute = now.get(Calendar.MINUTE);
+    Date currentDate = parseTime(currentHour + ":" + currentMinute);
+    return currentDate;
+  }
+
+  public static ZipCodeAddress populateGencoAddress()
+  {
+    ZipCodeAddress fromAddress = new ZipCodeAddress();
+    fromAddress.setZip(getAdminProperty(DbPropertyConstants.SHIP_FROM_ZIPCODE));
+    fromAddress.setState(getAdminProperty(DbPropertyConstants.SHIP_FROM_STATE));
+    fromAddress.setCountry("US");
+    fromAddress.setAddr1("street1");
+    fromAddress.setAddr2("street2");
+    return fromAddress;
+  }
+
+  public static ZipCodeAddress populateToAddress(String zipCode) throws CustomerException
+  {
+    ZipcodeAddress toAddr = CustomerService.INSTANCE.getAddressByZipcode(zipCode);
+    ZipCodeAddress toAddress = new ZipCodeAddress();
+    toAddress.setState(toAddr.getState());
+    toAddress.setZip(toAddr.getZip());
+    toAddress.setCountry(toAddr.getCountry());
+    toAddress.setAddr1("street1");
+    toAddress.setAddr2("street2");
+    return toAddress;
+  }
+}
+
+/**
+ * 
+ */
+package com.tivo.store.controller;
+
+import static org.mockito.Mockito.when;
+
+import org.apache.commons.lang.StringUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import com.tivo.commerce.productcatalog.TivoProductCatalog;
+import com.tivo.store.controller.support.DetailsInput;
+import com.tivo.store.support.StoreSupport;
+import com.tivo.store.util.Utils;
+
+/**
+ * @author rsure
+ * 
+ */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ TivoProductCatalog.class, StoreSupport.class,StringUtils.class })
+public class TempControllerTest1 {
+	@InjectMocks
+	TempController1 ctrl;
+
+	/**
+	 * @throws java.lang.Exception
+	 */
+	@Before
+	public void setUp() throws Exception {
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.tivo.store.controller.TempController#fetchBoxDetails(com.tivo.store.controller.support.DetailsInput)}
+	 * .
+	 */
+	@Test
+	public void testFetchBoxDetails() {
+		//StoreSupport support = mock(StoreSupport.class);
+		PowerMockito.mockStatic(StoreSupport.class);
+		//Whitebox.setInternalState(StoreSupport.class, "instance", support);
+		//when(StringUtils.isNotBlank("scrat@tivo.com")).thenReturn(false);
+		when(StoreSupport.isValidRequest("scrat@tivo.com", "tivotivo")).thenReturn(new Boolean(true));
+		
+		DetailsInput input = generateDetailsInput("RA9200", null);
+		String details = ctrl.fetchBoxDetails(input);
+		System.out.println(details);
+	}
+
+	private DetailsInput generateDetailsInput(String sku, String promo) {
+		DetailsInput input = new DetailsInput();
+
+		// removed hard coded values for user/password and added methods from
+		// com.tivo.store.util to get the values instead.
+		input.setUsername(Utils.getUser());
+		input.setPassword(Utils.getDecodedPassword());
+		input.setSku(sku);
+		if (promo != null && promo.trim().length() > 0) {
+			input.setPromo(promo);
+		}
+		return input;
+	}
+}
+
